@@ -83,5 +83,6 @@
     <string name="global_action_settings">Settings</string>
     <string name="global_action_screenrecord">Screenrecord</string>
     <string name="global_action_flashlight">Flashlight</string>
+    <string name="global_action_restart_sysui">SystemUI</string>
 
 </resources>

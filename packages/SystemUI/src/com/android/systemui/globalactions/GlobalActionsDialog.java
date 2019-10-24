@@ -54,6 +54,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.PowerManager;
+import android.os.Process;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemProperties;
@@ -153,6 +154,7 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
     private static final String GLOBAL_ACTION_KEY_REBOOT_RECOVERY = "reboot_recovery";
     private static final String GLOBAL_ACTION_KEY_REBOOT_BOOTLOADER = "reboot_bootloader";
     private static final String GLOBAL_ACTION_KEY_FLASHLIGHT = "flashlight";
+    private static final String GLOBAL_ACTION_KEY_RESTART_SYSUI = "restart_sysui";
 
     private final Context mContext;
     private final GlobalActionsManager mWindowManagerFuncs;
@@ -371,6 +373,11 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
                 if (isActionVisible(a)) {
                     items.add(a);
                 }
+            } else if (advancedRebootEnabled(mContext) && GLOBAL_ACTION_KEY_RESTART_SYSUI.equals(actionKey)) {
+                RestartSysUIAction a = new RestartSysUIAction();
+                if (isActionVisible(a)) {
+                    items.add(a);
+                }
             }
         }
         return items;
@@ -439,6 +446,8 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
                 mItems.add(new RebootRecoveryAction());
             } else if (advancedRebootEnabled(mContext) && GLOBAL_ACTION_KEY_REBOOT_BOOTLOADER.equals(actionKey)) {
                 mItems.add(new RebootBootloaderAction());
+            } else if (advancedRebootEnabled(mContext) && GLOBAL_ACTION_KEY_RESTART_SYSUI.equals(actionKey)) {
+                mItems.add(new RestartSysUIAction());
             } else if (GLOBAL_ACTION_KEY_SCREENSHOT.equals(actionKey)) {
                 if (Settings.System.getInt(mContext.getContentResolver(),
                         Settings.System.GLOBAL_ACTIONS_SCREENSHOT, 1) == 1) {
@@ -829,6 +838,35 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
         @Override
         public void onPress() {
             mWindowManagerFuncs.reboot(false, PowerManager.REBOOT_BOOTLOADER);
+        }
+    }
+    private final class RestartSysUIAction extends SinglePressAction {
+        private RestartSysUIAction() {
+            super(com.android.systemui.R.drawable.ic_restart_sysui, com.android.systemui.R.string.global_action_restart_sysui);
+        }
+            @Override
+        public boolean showDuringKeyguard() {
+            return true;
+        }
+
+        @Override
+        public boolean showDuringRestrictedKeyguard() {
+            return false;
+        }
+
+        @Override
+        public boolean showBeforeProvisioning() {
+            return true;
+        }
+
+        @Override
+        public void onPress() {
+            /* no time and need to dismiss the dialog here, just kill systemui straight after telling to
+               policy/GlobalActions that we hid the dialog within the kill action itself so its onStatusBarConnectedChanged
+               won't show the LegacyGlobalActions after systemui restart
+            */
+            mWindowManagerFuncs.onGlobalActionsHidden();
+            restartSystemUI();
         }
     }
 
@@ -2118,5 +2156,9 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
      */
     private static boolean shouldUseSeparatedView() {
         return true;
+    }
+
+    public static void restartSystemUI() {
+        Process.killProcess(Process.myPid());
     }
 }
