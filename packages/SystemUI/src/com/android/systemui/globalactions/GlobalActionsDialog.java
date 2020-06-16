@@ -537,29 +537,19 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
             addedKeys.add(actionKey);
         }
         mAdapter = new MyAdapter();
-
-        GlobalActionsPanelPlugin.PanelViewController panelViewController =
-                mPanelPlugin != null
-                        ? mPanelPlugin.onPanelShown(
-                                new GlobalActionsPanelPlugin.Callbacks() {
-                                    @Override
-                                    public void dismissGlobalActionsMenu() {
-                                        if (mDialog != null) {
-                                            mDialog.dismiss();
-                                        }
-                                    }
-
-                                    @Override
-                                    public void startPendingIntentDismissingKeyguard(
-                                            PendingIntent intent) {
-                                        mActivityStarter
-                                                .startPendingIntentDismissingKeyguard(intent);
-                                    }
-                                },
-                                mKeyguardManager.isDeviceLocked())
-                        : null;
-
-        ActionsDialog dialog = new ActionsDialog(mContext, mAdapter, panelViewController);
+        OnItemLongClickListener onItemLongClickListener = new OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position,
+                    long id) {
+                final Action action = mAdapter.getItem(position);
+                if (action instanceof LongPressAction) {
+                    mDialog.dismiss();
+                    return ((LongPressAction) action).onLongPress();
+                }
+                return false;
+            }
+        };
+        ActionsDialog dialog = new ActionsDialog(mContext, this, mAdapter, onItemLongClickListener);
         dialog.setCanceledOnTouchOutside(false); // Handled by the custom class.
         dialog.setKeyguardShowing(mKeyguardShowing);
         dialog.setOnDismissListener(this);
