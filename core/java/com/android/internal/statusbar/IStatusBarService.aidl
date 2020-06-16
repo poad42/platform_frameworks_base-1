@@ -84,11 +84,8 @@ interface IStatusBarService
     /**
      * These methods are needed for global actions control which the UI is shown in sysui.
      */
-    void shutdown(boolean confirm);
-    void reboot(boolean confirm);
-    void rebootBootloader(boolean confirm);
-    void rebootRecovery(boolean confirm);
-    void rebootSafeMode(boolean confirm);
+    void shutdown();
+    void reboot(boolean safeMode);
 
     void addTile(in ComponentName tile);
     void remTile(in ComponentName tile);
