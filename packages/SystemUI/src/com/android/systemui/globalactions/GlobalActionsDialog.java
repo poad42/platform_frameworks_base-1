@@ -69,7 +69,7 @@ import android.telephony.ServiceState;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.ArraySet;
-import android.util.FeatureFlagUtils;
+//import android.util.FeatureFlagUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.ContextThemeWrapper;
@@ -903,7 +903,7 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
 
     private class ScreenshotAction extends SinglePressAction implements LongPressAction {
         public ScreenshotAction() {
-            super(R.drawable.ic_screenshot, R.string.global_action_screenshot);
+            super(R.drawable.ic_screenshot, com.android.systemui.R.string.global_action_screenshot_cust);
         }
 
         @Override
@@ -915,11 +915,7 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        WindowManagerGlobal.getWindowManagerService().takeOPScreenshot(1);
-                    } catch (RemoteException e) {
-                        Log.e(TAG, "Error while trying to take screenshot.", e);
-                    }
+                    mScreenshotHelper.takeScreenshot(1, true, true, mHandler, null);
                     MetricsLogger.action(mContext,
                             MetricsEvent.ACTION_SCREENSHOT_POWER_MENU);
                 }
@@ -938,11 +934,11 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
 
         @Override
         public boolean onLongPress() {
-            if (FeatureFlagUtils.isEnabled(mContext, FeatureFlagUtils.SCREENRECORD_LONG_PRESS)) {
+            //if (FeatureFlagUtils.isEnabled(mContext, FeatureFlagUtils.SCREENRECORD_LONG_PRESS)) {
                 mScreenRecordHelper.launchRecordPrompt();
-            } else {
+            /*} else {
                 onPress();
-            }
+            }*/
             return true;
         }
     }
